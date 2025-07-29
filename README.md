@@ -7,7 +7,7 @@ This repository serves as the backend for an AI-driven service. It is designed t
 ## 🗂️ Project Structure
 
 ```bash
-project-root/
+Ai-Services/
 ├── src/
 │   ├── __init__.py
 │   ├── main.py                      # FastAPI app entry point
