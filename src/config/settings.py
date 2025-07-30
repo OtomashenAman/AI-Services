@@ -1,39 +1,29 @@
-# src/config/settings.py
 from pydantic_settings import BaseSettings
+from urllib.parse import quote_plus
+from pydantic import Field
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Service"
     DEBUG: bool = True
-    ENV: str = "development"
-    OPENAI_API_KEY: str = ""
-    DATABASE_URL: str = ""
-    LOG_LEVEL : str = "DEBUG"
-    AWS_ACCESS_KEY_ID : str =""
-    AWS_SECRET_ACCESS_KEY: str = ""
-    AWS_REGION : str = ""
-    S3_BUCKET_NAME : str =""
+    ENV: str = "development"  # change to 'production' for prod
+    OPENAI_API_KEY: str = Field("", env="OPENAI_API_KEY")
 
-    # Add all the missing ones
-    qdrant_host: str = "http://localhost"
-    qdrant_port: str = "6333"
-    qdrant_url: str = "http://localhost:6333"
-    qdrant_api_key: str = ""
     db_user: str = ""
     db_password: str = ""
     db_name: str = ""
     db_host: str = ""
     db_port: str = "5432"
-    admin_username: str = ""
-    admin_password: str = ""
 
-     # ✅ Azure Blob Storage
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_api_key: str = ""
+
     AZURE_COMMUNICATION_SERVICE_CONNECTION_STRING: str = ""
     DEFAULT_FILE_STORAGE: str = "storages"
     AZURE_ACCOUNT_NAME: str = ""
     AZURE_ACCOUNT_KEY: str = ""
     AZURE_CONTAINER_NAME: str = ""
     AZURE_SSL: bool = True
-    
+
     @property
     def AZURE_BLOB_CONNECTION_STRING(self) -> str:
         return (
@@ -46,8 +36,22 @@ class Settings(BaseSettings):
     @property
     def AZURE_CUSTOM_DOMAIN(self) -> str:
         return f"{self.AZURE_ACCOUNT_NAME}.blob.core.windows.net"
-    
+
+    @property
+    def LOG_LEVEL(self) -> str:
+        if self.ENV.lower() == "production" :
+            return "INFO"
+        return "DEBUG"
+
+    @property
+    def DATABASE_URL(self) -> str:
+        user = quote_plus(self.db_user)
+        password = quote_plus(self.db_password)
+        return f"postgresql+psycopg2://{user}:{password}@{self.db_host}:{self.db_port}/{self.db_name}"
+
     class Config:
         env_file = ".env"
+        env_file_encoding = "utf-8"
+        extra = "forbid"
 
-settings = Settings()
+settings  = Settings()

@@ -1,32 +1,13 @@
-version: '3.8'
+version: "3.9"
 
 services:
-  postgres_db:
-    image: postgres:17
-    container_name: postgres_db
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Tarun!2002
-      POSTGRES_DB: zorbit
+  fastapi_app:
+    build: .
+    container_name: fastapi_app
     ports:
-      - "5432:5432"
+      - "8000:8000"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: tarun.kumar@redwoods.ai
-      PGADMIN_DEFAULT_PASSWORD: 123Tarun@2002
-    ports:
-      - "5050:80"
-    depends_on:
-      - postgres_db
-    links:
-      - postgres_db:postgres
-
-volumes:
-  postgres_data:
+      - .:/app
+    env_file:
+      - .env
+    

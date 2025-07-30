@@ -17,5 +17,3 @@ CHUNK_SIZE = 512
 CHUNK_OVERLAP = 50
 
 REQUIRED_FIELDS = {"question", "answer"}
-
-S3_BUCKET_NAME = settings.S3_BUCKET_NAME
