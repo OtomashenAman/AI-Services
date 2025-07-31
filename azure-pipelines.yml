@@ -44,7 +44,9 @@ steps:
   displayName: 'Copy source to Artifact staging directory'
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)'
-    Contents: '**'
+    Contents: |
+      **/*
+      !.git/**
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 # ✅ Publish Artifact
