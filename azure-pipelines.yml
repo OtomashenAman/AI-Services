@@ -32,12 +32,13 @@ variables:
 
 steps:
 - checkout: self
+  displayName: 'Checkout full repo'
+  fetchDepth: 0
 
-# ✅ Force checkout to named branch to avoid detached HEAD
 - script: |
-    echo "Checking out dev branch explicitly..."
-    git checkout dev
-  displayName: 'Force checkout to dev branch'
+    echo "Checking out $(runBranch) branch explicitly..."
+    git checkout $(runBranch)
+  displayName: 'Force checkout to selected branch'
 
 # ✅ Copy files to artifact staging directory
 - task: CopyFiles@2
