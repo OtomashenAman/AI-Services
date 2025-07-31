@@ -53,14 +53,14 @@ async def data_ingestion_endpoint(
         ingestion_type = request_body.type
         input_info = request_body.input_data.dict()
         metafield = request_body.input_data.metafield.dict()
-        tenant_id = metafield['tenant_id']
+        user_type = metafield['user_type']
         
         #-------------------------------------------------------------------#
-        # """In feature we need know where tenant_id is correct or not?"""  #
+        # """In feature we need know where user_type is correct or not?"""  #
         #-------------------------------------------------------------------#
         
-        # set the tenant_id 
-        request.state.tenant_id = tenant_id
+        # set the user_type 
+        request.state.user_type = user_type
         request.state.CHUNK_SIZE = CHUNK_SIZE
         request.state.CHUNK_OVERLAP = CHUNK_OVERLAP
 
@@ -132,10 +132,10 @@ async def delete_endpoint(request: DeleteQARequestModel):
         # Extract input_data structure
         input_data = request.input_data.dict()
         metafield = input_data.get("metafield", {})
-        tenant_id = metafield.get("tenant_id")
+        user_type = metafield.get("user_type")
         docs = input_data.get("data", [])
 
-        deleted,not_deleted= await deleteQA(docs,tenant_id)
+        deleted,not_deleted= await deleteQA(docs,user_type)
 
         response = {
             "summary": {
@@ -160,11 +160,11 @@ async def update_by_doc_id(request:UpdateQARequestModel):
         request_data = request.dict()
         input_data = request_data.get("input_data", {})
         metafield = input_data.get("metafield", {})
-        tenant_id = metafield.get("tenant_id")
+        user_type = metafield.get("user_type")
         docs = input_data.get("data", [])
 
 
-        updated,not_updated= await updateQA(docs,tenant_id)
+        updated,not_updated= await updateQA(docs,user_type)
 
         return JSONResponse({
             "summary": {
@@ -189,11 +189,11 @@ async def delete_file_endpoint(request:Request):
     """
     DELETE /deletefile
     Deletes all matching vectors from Qdrant and associated documents from PostgreSQL
-    (both docstore and indexstore) for a given tenant_id and file_name.
+    (both docstore and indexstore) for a given user_type and file_name.
 
     Request JSON:
     {
-        "tenant_id": "<tenant-id>",
+        "user_type": "<user_type>",
         "doc_id" : "<doc-id>",
         "file_name": ["<file-name>"]
     }
@@ -207,14 +207,14 @@ async def delete_file_endpoint(request:Request):
     try:
         # ---- Step 0: Parse and validate input JSON ----
         data = await request.json()
-        tenant_id = data.get('tenant_id')
+        user_type = data.get('user_type')
         file_names = data.get('file_name')
 
-        logger.info(f"Received delete request for tenant_id='{tenant_id}', file_name='{file_names}'")
+        logger.info(f"Received delete request for user_type='{user_type}', file_name='{file_names}'")
 
         missing_docstore,missing_indexstore,total_deleted_doc_ids =await delete_file(
             file_names=file_names,
-            tenant_id= tenant_id
+            user_type= user_type
         )
 
         # ---- Step 5: Final response ----

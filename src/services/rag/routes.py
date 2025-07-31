@@ -27,12 +27,12 @@ async def rag_svc_main_endpoint(input_request:RAGRequestModel,request:Request):
     logger.info("--- Received request for RAG SVC MAIN API Endpoint ---")
     
     #-------------------------------------------------------------------#
-    # """In feature we need know where tenant_id is correct or not?"""  #
+    # """In feature we need know where user_type is correct or not?"""  #
     #-------------------------------------------------------------------#
     
-    # set the tenant_id 
-    tenant_id = input_request.tenant_id
-    request.state.tenant_id=tenant_id
+    # set the user_type 
+    user_type = input_request.user_type
+    request.state.user_type=user_type
 
     try:
         rag_type = input_request.rag_type or RAGType.QUESTION_ANSWER

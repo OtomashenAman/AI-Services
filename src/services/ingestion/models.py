@@ -13,11 +13,11 @@ class QAPair(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     question = Column(Text, nullable=False)
     answer = Column(Text)
-    tenant_id = Column(String, nullable=False)
+    user_type = Column(String, nullable=False)
 
 # Common Metadata
 class MetaField(BaseModel):
-    tenant_id: str
+    user_type: str
     doc_id: Optional[str] = None
 
 # InputData for ingestion

@@ -24,5 +24,5 @@ SIMILARITY_TOP_K = 5  # Number of top similar nodes to retrieve
 # For example, a different model for structured data extraction
 STRUCTURED_OUTPUT_LLM = OpenAI(model="gpt-4o-mini")
 
-MAIN_JSON_REQUIRED_FIELDS = {"queries", "tenant_id", "rag_type"}
+MAIN_JSON_REQUIRED_FIELDS = {"queries", "user_type", "rag_type"}
 

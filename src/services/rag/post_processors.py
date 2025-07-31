@@ -34,12 +34,12 @@ class TenantFilterPostprocessor(BaseNodePostprocessor):
         Returns:
             List[NodeWithScore]: Filtered list of nodes for the current tenant.
         """
-        tenant_id = self._req.state.tenant_id
-        if tenant_id is None:
+        user_type = self._req.state.user_type
+        if user_type is None:
             logger.warning("Tenant ID is not set in the request context. Returning all nodes.")
             return None
-        filtered_nodes = [node for node in nodes if node.metadata.get("tenant_id") == tenant_id]
-        logger.info("Filtered %d nodes for tenant ID '%s'", len(filtered_nodes), tenant_id)
+        filtered_nodes = [node for node in nodes if node.metadata.get("user_type") == user_type]
+        logger.info("Filtered %d nodes for tenant ID '%s'", len(filtered_nodes), user_type)
         return filtered_nodes
 
 class QA_dataadditionPostprocessor(BaseNodePostprocessor):
@@ -53,19 +53,19 @@ class QA_dataadditionPostprocessor(BaseNodePostprocessor):
         try:
             for node in nodes:
                 try:
-                    tenant_id = int(node.metadata.get('tenant_id'))
+                    user_type = str(node.metadata.get('user_type'))
                     doc_id = int(node.metadata.get('doc_id'))
 
-                    qa_entry = session.query(QAPair).filter_by(id=int(doc_id), tenant_id=str(tenant_id)).first()
+                    qa_entry = session.query(QAPair).filter_by(id=int(doc_id), user_type=str(user_type)).first()
 
                     if not qa_entry:
-                        logger.warning("No QAPair found for doc_id=%s, tenant_id=%s", doc_id, tenant_id)
+                        logger.warning("No QAPair found for doc_id=%s, user_type=%s", doc_id, user_type)
                         continue
 
                     node.metadata.update({
                         "answer": qa_entry.answer or "Answer not available/given"
                     })
-                    logger.debug(f"Queryed answer for node with doc_id={doc_id}, tenant_id={tenant_id}: {node.metadata['answer']}")
+                    logger.debug(f"Queryed answer for node with doc_id={doc_id}, user_type={user_type}: {node.metadata['answer']}")
 
                 except Exception as node_err:
                     logger.exception("Error processing node metadata: %s", node_err)

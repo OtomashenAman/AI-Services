@@ -5,12 +5,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def insert_qa_to_postgres(question: str, answer: str, tenant_id: str, session) -> int:
+def insert_qa_to_postgres(question: str, answer: str, user_type: str, session) -> int:
     try:
         qa = QAPair(
             question=question,
             answer=answer,
-            tenant_id=tenant_id,
+            user_type=user_type,
         )
         session.add(qa)
         session.flush()        # Push to DB without committing

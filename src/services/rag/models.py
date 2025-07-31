@@ -37,7 +37,7 @@ generator_map = {
 
 class RAGRequestModel(BaseModel):
     queries : dict[str,str]
-    tenant_id : str
+    user_type : str
     rag_type : RAGType
 
     @field_validator("queries")

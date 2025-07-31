@@ -26,7 +26,7 @@ def format_qa_documents(
     nodes = []
     session = create_postgres_session()
 
-    logger.info(f"Tenant ID for this request: { request.state.tenant_id}")
+    logger.info(f"User type for this request: { request.state.user_type}")
 
     for i, entry in enumerate(data):
         try:
@@ -44,7 +44,7 @@ def format_qa_documents(
                 doc_id = insert_qa_to_postgres(
                     question=question,
                     answer=entry.get("answer", ""),
-                    tenant_id= request.state.tenant_id,
+                    user_type= request.state.user_type,
                     session=session
                 )
             except Exception as e:
@@ -58,7 +58,7 @@ def format_qa_documents(
                 id_=str(doc_id),
                 metadata={
                     "doc_id": str(doc_id),
-                    "tenant_id":  request.state.tenant_id
+                    "user_type":  request.state.user_type
                 }
             )
             nodes.append(node)
@@ -93,7 +93,7 @@ def get_document_reader(request:Request) -> SimpleDirectoryReader:
 
     Each file ingested will be enriched with metadata, including:
     - 'filename': The name of the file being read.
-    - 'tenant_id': The tenant identifier, used for filtering in multi-tenant environments.
+    - 'user_type': The User identifier, used for filtering in multi-tenant environments.
     - 'doc_id'   : A unique identifier for the document, useful for tracking and updates.
 
     This reader is typically used to ingest documents (e.g., text, PDFs, JSON files) from a local
@@ -107,7 +107,7 @@ def get_document_reader(request:Request) -> SimpleDirectoryReader:
     def metadata_fn(file_path:str)->Dict:
         return {
             "filename":os.path.basename(file_path),
-            "tenant_id":request.state.tenant_id,
+            "user_type":request.state.user_type,
             "doc_id":request.state.doc_id
         }
     logger.info("Initializing SimpleDirectoryReader for path: '%s'",source_dir)
@@ -141,7 +141,7 @@ class CustomQADirectoryReader:
                             Each node includes:
                             - Formatted text (e.g., "Question: ...")
                             - Custom node ID based on the Q&A entry's ID
-                            - Metadata including 'doc_id' and 'tenant_id'
+                            - Metadata including 'doc_id' and 'user_type'
 
         Returns empty list if directory is invalid or contains no valid files.
         """
@@ -242,7 +242,7 @@ def get_qa_input_reader(input_json: List[Dict],request:Request) -> List[TextNode
         List[TextNode]: A list of structured TextNode objects, each containing:
             - Formatted text (e.g., "Question: ...")
             - Custom node_id based on the entry's 'id'
-            - Metadata including 'doc_id' and 'tenant_id'
+            - Metadata including 'doc_id' and 'user_type'
     """
     logger.info(f"Processing {len(input_json)} Q&A entries from input data")
     return format_qa_documents(data=input_json,request=request)

@@ -68,7 +68,7 @@ class VectorDBRetriever(BaseRetriever):
 
         Metadata_filters = MetadataFilters(
                     filters=[
-                        ExactMatchFilter(key="tenant_id", value=request.state.tenant_id)
+                        ExactMatchFilter(key="user_type", value=request.state.user_type)
                     ]
                 )
 
