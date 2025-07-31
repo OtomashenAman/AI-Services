@@ -32,6 +32,9 @@ variables:
 
 steps:
 - checkout: self
+  persistCredentials: true
+  clean: true
+  fetchDepth: 0
 
 # ✅ Copy files to artifact staging directory
 - task: CopyFiles@2
