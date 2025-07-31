@@ -58,7 +58,7 @@ steps:
     command: 'buildAndPush'
     Dockerfile: '**/Dockerfile'
     tags: |
-      development-$(Build.BuildId)-$(Build.SourceBranchName)
+      dev-$(Build.BuildId)-$(Build.SourceBranchName)
       latest
 
 # ✅ Copy files to Azure VM
@@ -99,7 +99,7 @@ steps:
 
 # ✅ Git Tagging for tracking
 - task: Bash@3
-  displayName: 'Tag development Release in GitHub'
+  displayName: 'Tag dev Release in GitHub'
   inputs:
     targetType: 'inline'
     script: |
@@ -108,9 +108,9 @@ steps:
 
       git clone https://$(GITHUB_USERNAME):$(GITHUB_PAT)@github.com/OtomashenAman/AI-Services.git
       cd AI-Services
-      git checkout development
+      git checkout dev
 
-      TAG_NAME="v1.0.0-development-$(Build.BuildId)"
+      TAG_NAME="v1.0.0-dev-$(Build.BuildId)"
       git tag -a "$TAG_NAME" -m "CI/CD tag from Azure DevOps build $(Build.BuildId)"
       git push origin "$TAG_NAME"
   env:
