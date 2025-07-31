@@ -32,13 +32,6 @@ variables:
 
 steps:
 - checkout: self
-  displayName: 'Checkout full repo'
-  fetchDepth: 0
-
-- script: |
-    echo "Checking out $(runBranch) branch explicitly..."
-    git checkout $(runBranch)
-  displayName: 'Force checkout to selected branch'
 
 # ✅ Copy files to artifact staging directory
 - task: CopyFiles@2
