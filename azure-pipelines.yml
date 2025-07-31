@@ -33,6 +33,12 @@ variables:
 steps:
 - checkout: self
 
+# ✅ Force checkout to named branch to avoid detached HEAD
+- script: |
+    echo "Checking out dev branch explicitly..."
+    git checkout dev
+  displayName: 'Force checkout to dev branch'
+
 # ✅ Copy files to artifact staging directory
 - task: CopyFiles@2
   displayName: 'Copy source to Artifact staging directory'
