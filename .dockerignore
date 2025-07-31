@@ -1,0 +1,28 @@
+# Ignore Git
+.git
+.gitignore
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Docker/CI/CD artifacts
+.dockerignore
+Dockerfile
+.env
+*.env
+.env.*
+
+# OS or IDE-specific
+.vscode/
+*.swp
+.DS_Store
+
+# Node/npm artifacts if present
+node_modules/
+npm-debug.log
