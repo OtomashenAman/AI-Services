@@ -1,0 +1,118 @@
+trigger:
+  branches:
+    include:
+      - dev
+
+pr:
+  branches:
+    include:
+      - main
+      - UAT
+      - QA
+      - dev
+
+parameters:
+  - name: runBranch
+    displayName: "Select Branch to Run"
+    type: string
+    default: "dev"
+    values:
+      - main
+      - UAT
+      - QA
+      - dev
+
+pool:
+  name: Default
+  demands:
+    - Agent.Name -equals custom-agents
+
+variables:
+  artifactName: 'AI-drop'
+
+steps:
+- checkout: self
+
+# ✅ Copy files to artifact staging directory
+- task: CopyFiles@2
+  displayName: 'Copy source to Artifact staging directory'
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+# ✅ Publish Artifact
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: '$(artifactName)'
+    publishLocation: 'Container'
+
+# ✅ Build & Push Docker Image to GHCR
+- task: Docker@2
+  displayName: 'Build and Push AI-Services Image'
+  inputs:
+    containerRegistry: 'GHCR'
+    repository: 'siddhanta2898/ai-services'
+    command: 'buildAndPush'
+    Dockerfile: '**/Dockerfile'
+    tags: |
+      development-$(Build.BuildId)-$(Build.SourceBranchName)
+      latest
+
+# ✅ Copy files to Azure VM
+- task: CopyFilesOverSSH@0
+  displayName: 'Copy files to Azure VM'
+  inputs:
+    sshEndpoint: 'azure-vm-ssh-connection'
+    sourceFolder: '$(Build.ArtifactStagingDirectory)'
+    contents: '**'
+    targetFolder: '/home/azureuser/AI-Services'
+    cleanTargetFolder: true
+
+# ✅ SSH to VM, login to GHCR, and run docker-compose
+- task: SSH@0
+  displayName: 'Deploy on Azure VM via Docker Compose'
+  inputs:
+    sshEndpoint: 'azure-vm-ssh-connection'
+    runOptions: 'inline'
+    failOnStdErr: false
+    inline: |
+      echo "Logging into GHCR..."
+      echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+
+      cd /home/azureuser/AI-Services
+
+      echo "Bringing down existing containers..."
+      docker-compose down --volumes --remove-orphans
+      sleep 5
+
+      echo "Pulling latest image..."
+      docker-compose pull
+
+      echo "Starting new containers..."
+      docker-compose up -d --no-build 2>&1 | tee docker-compose.log
+  env:
+    GHCR_USERNAME: $(ghcrUsername)
+    GHCR_TOKEN: $(ghcrToken)
+
+# ✅ Git Tagging for tracking
+- task: Bash@3
+  displayName: 'Tag development Release in GitHub'
+  inputs:
+    targetType: 'inline'
+    script: |
+      git config --global user.email "devops@otomashen.com"
+      git config --global user.name "Azure DevOps"
+
+      git clone https://$(GITHUB_USERNAME):$(GITHUB_PAT)@github.com/OtomashenAman/AI-Services.git
+      cd AI-Services
+      git checkout development
+
+      TAG_NAME="v1.0.0-development-$(Build.BuildId)"
+      git tag -a "$TAG_NAME" -m "CI/CD tag from Azure DevOps build $(Build.BuildId)"
+      git push origin "$TAG_NAME"
+  env:
+    GITHUB_PAT: $(GITHUB_PAT)
+    GITHUB_USERNAME: $(GITHUB_USERNAME)
