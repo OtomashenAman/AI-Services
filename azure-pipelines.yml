@@ -2,25 +2,28 @@ trigger:
   branches:
     include:
       - dev
+  batch: true
 
-pr:
-  branches:
-    include:
-      - main
-      - UAT
-      - QA
-      - dev
+name: $(date:yyyyMMdd)$(rev:.r)-$(Build.SourceBranchName)
 
-parameters:
-  - name: runBranch
-    displayName: "Select Branch to Run"
-    type: string
-    default: "dev"
-    values:
-      - main
-      - UAT
-      - QA
-      - dev
+# pr:
+#   branches:
+#     include:
+#       - main
+#       - UAT
+#       - QA
+#       - dev
+
+# parameters:
+#   - name: runBranch
+#     displayName: "Select Branch to Run"
+#     type: string
+#     default: "dev"
+#     values:
+#       - main
+#       - UAT
+#       - QA
+#       - dev
 
 pool:
   name: Default
@@ -32,9 +35,9 @@ variables:
 
 steps:
 - checkout: self
-  persistCredentials: true
-  clean: true
-  fetchDepth: 0
+  # persistCredentials: true
+  # clean: true
+  # fetchDepth: 0
 
 # ✅ Copy files to artifact staging directory
 - task: CopyFiles@2
