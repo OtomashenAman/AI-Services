@@ -16,12 +16,37 @@
 
 # version: "3.9"
 
+# services:
+#   fastapi_app:
+#     image: ghcr.io/siddhanta2898/ai-services:latest
+#     container_name: fastapi_app
+#     ports:
+#       - "8012:8012"
+#     env_file:
+#       - .env
+#     command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8012"]/
+
+
 services:
+  redis:
+    image: ghcr.io/siddhanta2898/Ai-dev/redis:latest
+    container_name: ai-services-redis
+    ports:
+      - "6386:6379"
+    restart: unless-stopped
+
   fastapi_app:
-    image: ghcr.io/siddhanta2898/ai-services:latest
+    image: ghcr.io/siddhanta2898/Ai-dev/ai-services:latest
     container_name: fastapi_app
     ports:
       - "8012:8012"
     env_file:
       - .env
+    depends_on:
+      - redis
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8012"]
+
+
