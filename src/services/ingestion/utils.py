@@ -13,7 +13,7 @@ from src.services.ingestion.models import QAPair
 
 logger = logging.getLogger(__name__)
 
-async def deleteQA(docs:list, tenant_id:str):
+async def deleteQA(docs:list, user_type:str):
     client = connect_qdrantDB()
     db_session = create_postgres_session()
     deleted = []
@@ -30,7 +30,7 @@ async def deleteQA(docs:list, tenant_id:str):
             filter_condition = Filter(
                 must=[
                     FieldCondition(key="doc_id", match=MatchValue(value=doc_id)),
-                    FieldCondition(key="tenant_id", match=MatchValue(value=tenant_id))
+                    FieldCondition(key="user_type", match=MatchValue(value=user_type))
                 ]
             )
 
@@ -60,7 +60,7 @@ async def deleteQA(docs:list, tenant_id:str):
 
             # Step 3: Delete from PostgreSQL
             try:
-                rows_deleted = db_session.query(QAPair).filter_by(id= doc_id,tenant_id=tenant_id).delete()
+                rows_deleted = db_session.query(QAPair).filter_by(id= doc_id,user_type=user_type).delete()
                 if rows_deleted == 0:
                     raise Exception("No matching row in PostgreSQL")
                 
@@ -92,7 +92,7 @@ async def deleteQA(docs:list, tenant_id:str):
             not_deleted.append({"id": doc_id, "reason": str(delete_error)})
     return deleted,not_deleted
 
-async def updateQA(docs: list, tenant_id: str):
+async def updateQA(docs: list, user_type: str):
     client = connect_qdrantDB()
     embed_model = get_embedding_model()
     db_session = create_postgres_session()
@@ -116,7 +116,7 @@ async def updateQA(docs: list, tenant_id: str):
             filter_condition = Filter(
                 must=[
                     FieldCondition(key="doc_id", match=MatchValue(value=doc_id)),
-                    FieldCondition(key="tenant_id", match=MatchValue(value=tenant_id))
+                    FieldCondition(key="user_type", match=MatchValue(value=user_type))
                 ]
             )
 
@@ -161,7 +161,7 @@ async def updateQA(docs: list, tenant_id: str):
 
             # Step 4: Update PostgreSQL
             try:
-                qa_obj = db_session.query(QAPair).filter_by(id=doc_id, tenant_id=tenant_id).first()
+                qa_obj = db_session.query(QAPair).filter_by(id=doc_id, user_type=user_type).first()
                 if qa_obj:
                     qa_obj.question = question
                     db_session.commit()
@@ -200,7 +200,7 @@ async def updateQA(docs: list, tenant_id: str):
 
 
 
-async def delete_file(file_names:list,tenant_id:str):
+async def delete_file(file_names:list,user_type:str):
     # ---- Step 1: Connect to Qdrant and PostgreSQL ----
     qdrant_client = connect_qdrantDB()
     docstore = connect_postgres()
@@ -213,7 +213,7 @@ async def delete_file(file_names:list,tenant_id:str):
     for file_name in file_names:
         qdrant_filter = Filter(
             must=[
-                FieldCondition(key="tenant_id", match=MatchValue(value=tenant_id)),
+                FieldCondition(key="user_type", match=MatchValue(value=user_type)),
                 FieldCondition(key="filename", match=MatchValue(value=file_name))
             ]
         )
@@ -247,7 +247,7 @@ async def delete_file(file_names:list,tenant_id:str):
                 break
 
         if not deleted_doc_ids:
-            logger.info(f"No vectors found for tenant_id='{tenant_id}', file_name='{file_name}'")
+            logger.info(f"No vectors found for user_type='{user_type}', file_name='{file_name}'")
             continue  # Try next file
 
         # ---- Step 3: Delete vectors from Qdrant ----

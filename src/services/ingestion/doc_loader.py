@@ -8,7 +8,8 @@ from typing import List, Union, Iterable, Dict
 from .settings import  REQUIRED_FIELDS
 import os
 from fastapi.requests import Request
-from src.services.shared.data_base.qa_sql_writer import insert_qa_to_postgres
+from src.services.shared.data_base.qa_sql_writer import insert_qa_to_postgres,delete_qa_pairs_by_ids
+from src.utils.sequence_reset import reset_qa_pairs_sequence
 from src.services.shared.data_base.storage_context import create_postgres_session
 from llama_index.core.schema import TextNode
 logger = logging.getLogger(__name__)
@@ -16,20 +17,22 @@ logger = logging.getLogger(__name__)
 # --------------------------------------------------------
 #                   Utility Functions
 # --------------------------------------------------------
+
 def format_qa_documents(
     request: Request,
     data: Iterable[Dict],
     filename: str = None,
 ) -> List[TextNode]:
 
-
     nodes = []
+    inserted_ids = []
     session = create_postgres_session()
 
-    logger.info(f"Tenant ID for this request: { request.state.tenant_id}")
+    logger.info(f"User type for this request: {request.state.user_type}")
 
     for i, entry in enumerate(data):
         try:
+            #  Validate required fields
             if not all(field in entry for field in REQUIRED_FIELDS):
                 logger.warning(f"Skipping malformed entry in {filename}: {entry}")
                 continue
@@ -39,26 +42,39 @@ def format_qa_documents(
                 logger.warning(f"Skipping entry with empty question in {filename}: {entry}")
                 continue
 
-            # Attempt to insert into PostgreSQL
+            #   Attempt to insert into PostgreSQL
             try:
                 doc_id = insert_qa_to_postgres(
                     question=question,
                     answer=entry.get("answer", ""),
-                    tenant_id= request.state.tenant_id,
+                    user_type=request.state.user_type,
+                    client_id=request.state.client_id,
+                    EOR_id=request.state.EOR_id,
+                    contrator_id=request.state.contrator_id,
                     session=session
                 )
+                inserted_ids.append(doc_id)
             except Exception as e:
                 logger.error(f"Failed to insert QAPair at index {i}. Rolling back this entry. Error: {e}")
-                session.rollback()  # Only rollback this insert
-                continue  # Skip to next entry
+                session.rollback()
 
-            # Add to vector store
+                #  Fix sequence after failed insert
+                try:
+                    reset_qa_pairs_sequence(session)
+                except Exception as seq_e:
+                    logger.warning(f"Failed to reset sequence after rollback: {seq_e}")
+                continue
+
+            #   Add to vector store
             node = TextNode(
                 text=f"Question: {question}",
                 id_=str(doc_id),
                 metadata={
                     "doc_id": str(doc_id),
-                    "tenant_id":  request.state.tenant_id
+                    "user_type": request.state.user_type,
+                    "EOR_id": request.state.EOR_id,
+                    "client_id": request.state.client_id,
+                    "contrator_id": request.state.contrator_id
                 }
             )
             nodes.append(node)
@@ -66,7 +82,7 @@ def format_qa_documents(
 
         except Exception as e:
             logger.error(f"Unexpected error at index {i} in {filename}: {entry} | Error: {e}")
-            continue  # Or raise if you want to stop on unexpected errors
+            continue  # Skip unexpected errors
 
     try:
         session.commit()
@@ -74,6 +90,21 @@ def format_qa_documents(
     except Exception as e:
         logger.exception("Final commit failed. Rolling back entire session.")
         session.rollback()
+
+        #  Delete manually inserted records (mimic rollback)
+        try:
+            if inserted_ids:
+                delete_qa_pairs_by_ids(inserted_ids, session)
+                session.commit()
+                logger.warning(f"Cleaned up {len(inserted_ids)} partially inserted QAs")
+        except Exception as delete_e:
+            logger.error(f"Failed to delete inserted QAs after commit failure: {delete_e}")
+
+        try:
+            reset_qa_pairs_sequence(session)
+        except Exception as seq_e:
+            logger.warning(f"Failed to reset sequence after final rollback: {seq_e}")
+
         raise ValueError("Failed to commit data to PostgreSQL")
 
     finally:
@@ -93,7 +124,7 @@ def get_document_reader(request:Request) -> SimpleDirectoryReader:
 
     Each file ingested will be enriched with metadata, including:
     - 'filename': The name of the file being read.
-    - 'tenant_id': The tenant identifier, used for filtering in multi-tenant environments.
+    - 'user_type': The User identifier, used for filtering in multi-tenant environments.
     - 'doc_id'   : A unique identifier for the document, useful for tracking and updates.
 
     This reader is typically used to ingest documents (e.g., text, PDFs, JSON files) from a local
@@ -107,7 +138,7 @@ def get_document_reader(request:Request) -> SimpleDirectoryReader:
     def metadata_fn(file_path:str)->Dict:
         return {
             "filename":os.path.basename(file_path),
-            "tenant_id":request.state.tenant_id,
+            "user_type":request.state.user_type,
             "doc_id":request.state.doc_id
         }
     logger.info("Initializing SimpleDirectoryReader for path: '%s'",source_dir)
@@ -141,7 +172,7 @@ class CustomQADirectoryReader:
                             Each node includes:
                             - Formatted text (e.g., "Question: ...")
                             - Custom node ID based on the Q&A entry's ID
-                            - Metadata including 'doc_id' and 'tenant_id'
+                            - Metadata including 'doc_id' and 'user_type'
 
         Returns empty list if directory is invalid or contains no valid files.
         """
@@ -242,7 +273,7 @@ def get_qa_input_reader(input_json: List[Dict],request:Request) -> List[TextNode
         List[TextNode]: A list of structured TextNode objects, each containing:
             - Formatted text (e.g., "Question: ...")
             - Custom node_id based on the entry's 'id'
-            - Metadata including 'doc_id' and 'tenant_id'
+            - Metadata including 'doc_id' and 'user_type'
     """
     logger.info(f"Processing {len(input_json)} Q&A entries from input data")
     return format_qa_documents(data=input_json,request=request)

@@ -23,6 +23,7 @@ def connect_qdrantDB():
     qdrant_client_instance = qdrant_client.QdrantClient(
             url=settings.QDRANT_URL,
             api_key=settings.QDRANT_API_KEY,
+            timeout=120.0
         )
     
     return qdrant_client_instance 
@@ -75,6 +76,7 @@ def get_storage_context() -> StorageContext:
         vector_store = QdrantVectorStore(
         client=qdrant_client_instance,
         collection_name=settings.QDRANT_COLLECTION_NAME,
+        batch_size=settings.Batch_size
             )
         logger.info("QdrantVectorStore initialized for collection: '%s'", settings.QDRANT_COLLECTION_NAME)
 

@@ -1,7 +1,7 @@
 
 # 🔧 Qdrant Payload Index Creation Script
 
-This script resolves common errors related to missing payload indexes in your Qdrant vector database—specifically for filtering by fields such as `tenant_id`.
+This script resolves common errors related to missing payload indexes in your Qdrant vector database—specifically for filtering by fields such as `user_type`.
 
 ---
 
@@ -12,16 +12,16 @@ If you're encountering an error like the following when querying Qdrant:
 ```bash
 qdrant_client.http.exceptions.UnexpectedResponse: Unexpected Response: 400 (Bad Request)
 Raw response content:
-b'{"status":{"error":"Bad request: Index required but not found for \"tenant_id\" of one of the following types: [keyword]. Help: Create an index for this key or use a different filter."}
+b'{"status":{"error":"Bad request: Index required but not found for \"user_type\" of one of the following types: [keyword]. Help: Create an index for this key or use a different filter."}
 ```
 
-It means your collection is missing a **payload index** for the `tenant_id` field. This index is necessary for filtering queries using this field.
+It means your collection is missing a **payload index** for the `user_type` field. This index is necessary for filtering queries using this field.
 
 ---
 
 ## ✅ Solution
 
-Run the following Python script to **create the required payload index** on the `tenant_id` field.
+Run the following Python script to **create the required payload index** on the `user_type` field.
 
 ### 📜 Script: `create_qdrant_index.py`
 
@@ -44,14 +44,14 @@ client = QdrantClient(
     api_key=qdrant_api_key
 )
 
-# Create payload index for 'tenant_id'
+# Create payload index for 'user_type'
 client.create_payload_index(
     collection_name="Question_vector_collection",
-    field_name="tenant_id",
+    field_name="user_type",
     field_schema=PayloadSchemaType.KEYWORD
 )
 
-print("✅ Payload index on 'tenant_id' created successfully!")
+print("✅ Payload index on 'user_type' created successfully!")
 ```
 
 ---

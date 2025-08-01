@@ -13,12 +13,27 @@ class QAPair(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     question = Column(Text, nullable=False)
     answer = Column(Text)
-    tenant_id = Column(String, nullable=False)
+    user_type = Column(String, nullable=False)
+    client_id = Column(String,default=None)
+    EOR_id = Column(String,default=None)
+    contrator_id = Column(String,default=None)
+
+
+
 
 # Common Metadata
 class MetaField(BaseModel):
-    tenant_id: str
+    user_type: str
     doc_id: Optional[str] = None
+    EOR_id: Optional[str] = None
+    client_id: Optional[str] = None
+    contrator_id : Optional[str] = None
+
+    # @model_validator(mode="after")
+    # def validate_ids(self) -> 'MetaField':
+    #     if not any([self.EOR_id, self.client_id, self.contrator_id]):
+    #         raise ValueError("At least one of 'EOR_id', 'client_id', or 'contrator_id' must be provided.")
+    #     return self
 
 # InputData for ingestion
 class InputData(BaseModel):
