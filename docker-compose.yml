@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
 
   fastapi_app:
-    image: ghcr.io/siddhanta2898/Ai-dev/ai-services:latest
+    image: ghcr.io/siddhanta2898/ai-dev/ai-services:latest
     container_name: fastapi_app
     ports:
       - "8012:8012"
