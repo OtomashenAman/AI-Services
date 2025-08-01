@@ -28,8 +28,8 @@
 
 
 services:
-  redis:
-    image: ghcr.io/siddhanta2898/Ai-dev/redis:latest
+   redis:
+    image: redis:7.2-alpine  # ✅ Use official image instead of GHCR
     container_name: ai-services-redis
     ports:
       - "6386:6379"
