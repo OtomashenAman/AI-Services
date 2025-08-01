@@ -54,6 +54,9 @@ async def data_ingestion_endpoint(
         input_info = request_body.input_data.dict()
         metafield = request_body.input_data.metafield.dict()
         user_type = metafield['user_type']
+        EOR_id= metafield['EOR_id']
+        client_id= metafield['client_id']
+        contrator_id = metafield['contrator_id']
         
         #-------------------------------------------------------------------#
         # """In feature we need know where user_type is correct or not?"""  #
@@ -61,6 +64,9 @@ async def data_ingestion_endpoint(
         
         # set the user_type 
         request.state.user_type = user_type
+        request.state.EOR_id = EOR_id
+        request.state.client_id = client_id
+        request.state.contrator_id = contrator_id
         request.state.CHUNK_SIZE = CHUNK_SIZE
         request.state.CHUNK_OVERLAP = CHUNK_OVERLAP
 

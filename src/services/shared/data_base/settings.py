@@ -10,6 +10,8 @@ QDRANT_API_KEY = settings.qdrant_api_key
 QDRANT_COLLECTION_NAME = "rag_vector_collection"
 QDRANT_QCOLLECTION_NAME = "QuestionCollection"
 
+Batch_size = 50
+
 
 
 DB_URL  = settings.DATABASE_URL

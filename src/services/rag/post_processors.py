@@ -5,7 +5,7 @@ from typing import List
 from fastapi.requests import Request
 from pydantic import PrivateAttr
 
-from src.services.shared.data_base.qa_sql_writer import create_postgres_session
+from src.services.shared.data_base.storage_context import create_postgres_session
 from src.services.ingestion.models import QAPair
 
 logger = logging.getLogger(__name__)

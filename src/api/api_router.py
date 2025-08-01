@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter,Depends
+
 from src.services.ingestion.routes import ingest_router
 from src.services.rag.routes import rag_router
 
