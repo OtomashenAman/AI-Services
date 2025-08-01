@@ -61,7 +61,7 @@ steps:
   displayName: 'Build and Push AI-Services Image'
   inputs:
     containerRegistry: 'GHCR'
-    repository: 'siddhanta2898/ai-services'
+    repository: 'siddhanta2898/ai-dev/ai-services'
     command: 'buildAndPush'
     Dockerfile: '**/Dockerfile'
     tags: |
