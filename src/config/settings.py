@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     AZURE_CONTAINER_NAME: str = ""
     AZURE_SSL: bool = True
 
+    AUTH_URL: str = ""
+    REDIS_HOST :str = ""
+    REDIS_PORT :str = ""
+
     @property
     def AZURE_BLOB_CONNECTION_STRING(self) -> str:
         return (
