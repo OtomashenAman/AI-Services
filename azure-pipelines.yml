@@ -68,6 +68,18 @@ steps:
       dev-$(Build.BuildId)-$(Build.SourceBranchName)
       latest
 
+# ✅ Build & Push Redis Image to GHCR
+- task: Docker@2
+  displayName: 'Build and Push Redis Image'
+  inputs:
+    containerRegistry: 'GHCR'
+    repository: 'siddhanta2898/Ai-dev/redis'
+    command: 'buildAndPush'
+    Dockerfile: 'redis/Dockerfile'  # Adjust path if your Dockerfile is in a subfolder
+    tags: |
+      dev-$(Build.BuildId)-$(Build.SourceBranchName)
+      latest
+
 # ✅ Copy files to Azure VM
 - task: CopyFilesOverSSH@0
   displayName: 'Copy files to Azure VM'
