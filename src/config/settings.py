@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     REDIS_HOST :str = ""
     REDIS_PORT :str = ""
 
+    tavily_api_key: str = ""
+
     @property
     def AZURE_BLOB_CONNECTION_STRING(self) -> str:
         return (
