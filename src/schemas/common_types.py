@@ -9,3 +9,4 @@ class UserData(BaseModel):
     id: Optional[UUID]
     username: Optional[str] = None
     email: Optional[str] = None
+    user_type : str = None

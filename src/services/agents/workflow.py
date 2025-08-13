@@ -4,49 +4,87 @@
 
 import sys
 import os
+
+# # Add the project root to Python path for imports
+# project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# sys.path.insert(0, project_root)
+
 from langgraph.graph import StateGraph, START, END
+from src.services.agents.type import UserQueryRequest
+import logging
 
-
-from src.services.agents.type import Agentstate
+from src.services.agents.type import AgentState
 from src.services.agents.nodes import (
-                                        call_rag,
-                                        is_Navig_query,
-                                        call_websearch,
-                                        call_redirect,
-                                        user_realted_answer
+                                        run_rag_pipeline,
+                                        check_navigation_query,
+                                        perform_web_search,
+                                        execute_redirect,
+                                        fetch_user_related_answer,
+                                        check_hr_query
                                        )
 
-
+logger = logging.getLogger(__name__)
+# from IPython.display import Image, display
 # -------------------
 # Build Graph
 # -------------------
 
-graph_builder = StateGraph(Agentstate)
-graph_builder.add_node("is_Navig_query",is_Navig_query)
-graph_builder.add_node("user_realted_answer",user_realted_answer)
-graph_builder.add_node("call_websearch",call_websearch)
-graph_builder.add_node("call_rag",call_rag)
-graph_builder.add_node("call_redirect",call_redirect)
+def build_agent_graph():
 
-# Flow
-graph_builder.add_edge(START, "is_Navig_query")
-graph_builder.add_conditional_edges(
-    "is_Navig_query",
-    lambda s: "call_redirect" if s["navigate_realted"] else "call_rag",
-    {"call_rag": "call_rag", "call_redirect": "call_redirect"}
-)
+    graph_builder = StateGraph(AgentState)
 
-graph_builder.add_edge("call_rag","user_realted_answer")
-graph_builder.add_conditional_edges(
-    "user_realted_answer",
-    lambda s: "call_websearch" if not s['user_realted_answer'] else END,
-    {'call_websearch':'call_websearch',END:END}
+    # Node definitions
+    graph_builder.add_node("check_hr_query", check_hr_query)
+    graph_builder.add_node("check_navigation_query", check_navigation_query)
+    graph_builder.add_node("fetch_user_related_answer", fetch_user_related_answer)
+    graph_builder.add_node("perform_web_search", perform_web_search)
+    graph_builder.add_node("run_rag_pipeline", run_rag_pipeline)
+    graph_builder.add_node("execute_redirect", execute_redirect)
 
-)
-graph_builder.add_edge("call_redirect",END)
-graph_builder.add_edge("call_websearch",END)
+    # Flow
+    graph_builder.add_edge(START,"check_hr_query")
+    graph_builder.add_conditional_edges(
+        "check_hr_query",
+        lambda s:'check_navigation_query' if s['is_hr_query'] else "perform_web_search",
+        {'check_navigation_query':'check_navigation_query','perform_web_search':'perform_web_search'}
+        
+        )
+    graph_builder.add_conditional_edges(
+        "check_navigation_query",
+        lambda s: "execute_redirect" if s["navigate_realted"] else "run_rag_pipeline",
+        {"run_rag_pipeline": "run_rag_pipeline", "execute_redirect": "execute_redirect"}
+    )
 
-graph = graph_builder.compile()
+    graph_builder.add_edge("run_rag_pipeline", "fetch_user_related_answer")
+    graph_builder.add_conditional_edges(
+        "fetch_user_related_answer",
+        lambda s: "perform_web_search" if not s['user_realted_answer'] else END,
+        {"perform_web_search": "perform_web_search", END: END}
+    )
+
+    graph_builder.add_edge("execute_redirect", END)
+    graph_builder.add_edge("perform_web_search", END)
+
+    
+    agent = graph_builder.compile()
+    # png_data = agent.get_graph().draw_mermaid_png()
+    # # Save it locally
+    # output_path = "src/services/agents/graph.png"  # You can give absolute path if needed
+    # with open(output_path, "wb") as f:
+    #     f.write(png_data)
+
+    # # Optional: Display it inline as well
+    # try:
+    #     display(Image(output_path))
+    # except Exception:
+    #     pass
+
+    # print(f"Graph image saved at: {output_path}")
+
+    return agent
+
+
+
 
 
 
