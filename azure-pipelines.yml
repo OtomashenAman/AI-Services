@@ -1,14 +1,14 @@
 trigger:
   branches:
     include:
-      - dev
+      - beta
 
 name: $(date:yyyyMMdd)$(rev:.r)-$(Build.SourceBranchName)
 
 pr:
   branches:
     include:
-      - main
+      - beta
       - UAT
       - QA
       - dev
@@ -17,9 +17,9 @@ parameters:
   - name: runBranch
     displayName: "Select Branch to Run"
     type: string
-    default: "dev"
+    default: "beta"
     values:
-      - main
+      - beta
       - UAT
       - QA
       - dev
@@ -61,7 +61,7 @@ steps:
   displayName: 'Build and Push AI-Services Image'
   inputs:
     containerRegistry: 'GHCR'
-    repository: 'siddhanta2898/ai-dev/ai-services'
+    repository: 'siddhanta2898/ai-beta/ai-services'
     command: 'buildAndPush'
     Dockerfile: '**/Dockerfile'
     tags: |
@@ -75,7 +75,7 @@ steps:
     sshEndpoint: 'azure-vm-ssh-connection'
     sourceFolder: '$(Build.ArtifactStagingDirectory)'
     contents: '**'
-    targetFolder: '/home/azureuser/AI-Services'
+    targetFolder: '/home/KOMPADMIN/AI-Services'
     cleanTargetFolder: true
 
 # ✅ SSH to VM, login to GHCR, and run docker-compose
@@ -89,7 +89,7 @@ steps:
       echo "Logging into GHCR..."
       echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
-      cd /home/azureuser/AI-Services
+      cd /home/KOMPADMIN/AI-Services
 
       echo "Bringing down existing containers..."
       docker-compose down --volumes --remove-orphans
