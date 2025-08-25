@@ -65,7 +65,7 @@ steps:
     command: 'buildAndPush'
     Dockerfile: '**/Dockerfile'
     tags: |
-      dev-$(Build.BuildId)-$(Build.SourceBranchName)
+      beta-$(Build.BuildId)-$(Build.SourceBranchName)
       latest
 
 # ✅ Copy files to Azure VM
@@ -115,9 +115,9 @@ steps:
 
       git clone https://$(GITHUB_USERNAME):$(GITHUB_PAT)@github.com/OtomashenAman/AI-Services.git
       cd AI-Services
-      git checkout dev
+      git checkout beta
 
-      TAG_NAME="v1.0.0-dev-$(Build.BuildId)"
+      TAG_NAME="v1.0.0-beta-$(Build.BuildId)"
       git tag -a "$TAG_NAME" -m "CI/CD tag from Azure DevOps build $(Build.BuildId)"
       git push origin "$TAG_NAME"
   env:
