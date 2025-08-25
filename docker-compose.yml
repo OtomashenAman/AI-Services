@@ -30,14 +30,14 @@ version: '3.8'
 
 services:
   redis:
-    image: redis:7.2-alpine  # ✅ Use official image instead of GHCR
+    image: redis:7.2-alpine
     container_name: ai-services-redis
     ports:
       - "6386:6379"
     restart: unless-stopped
 
   fastapi_app:
-    image: ghcr.io/siddhanta2898/ai-dev/ai-services:latest
+    image: ghcr.io/siddhanta2898/ai-beta/ai-services:latest
     container_name: fastapi_app
     ports:
       - "8012:8012"
